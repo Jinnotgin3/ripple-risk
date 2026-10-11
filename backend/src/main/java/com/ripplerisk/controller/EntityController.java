@@ -3,7 +3,6 @@ package com.ripplerisk.controller;
 import com.ripplerisk.entity.RiskEntity;
 import com.ripplerisk.repository.RiskEntityRepository;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,10 +10,13 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/entities")
-@RequiredArgsConstructor
 public class EntityController {
 
     private final RiskEntityRepository repo;
+
+    public EntityController(RiskEntityRepository repo) {
+        this.repo = repo;
+    }
 
     @GetMapping
     public List<RiskEntity> all() {

@@ -1,13 +1,9 @@
 package com.ripplerisk.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "entities")
-@Data
-@NoArgsConstructor
 public class RiskEntity {
 
     @Id
@@ -28,6 +24,31 @@ public class RiskEntity {
     @Column(nullable = false)
     private EntityStatus status = EntityStatus.HEALTHY;
 
-    public enum EntityType  { LENDER, BORROWER, CENTRAL_BANK }
+    public RiskEntity() {}
+
+    public RiskEntity(Long id, String name, EntityType type, Double balance, EntityStatus status) {
+        this.id = id;
+        this.name = name;
+        this.type = type;
+        this.balance = balance;
+        this.status = status != null ? status : EntityStatus.HEALTHY;
+    }
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+
+    public EntityType getType() { return type; }
+    public void setType(EntityType type) { this.type = type; }
+
+    public Double getBalance() { return balance; }
+    public void setBalance(Double balance) { this.balance = balance; }
+
+    public EntityStatus getStatus() { return status; }
+    public void setStatus(EntityStatus status) { this.status = status; }
+
+    public enum EntityType { LENDER, BORROWER, CENTRAL_BANK }
     public enum EntityStatus { HEALTHY, DISTRESSED, FAILED }
 }

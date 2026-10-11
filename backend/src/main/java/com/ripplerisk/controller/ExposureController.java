@@ -2,7 +2,6 @@ package com.ripplerisk.controller;
 
 import com.ripplerisk.entity.Exposure;
 import com.ripplerisk.repository.ExposureRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,10 +9,13 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/exposures")
-@RequiredArgsConstructor
 public class ExposureController {
 
     private final ExposureRepository repo;
+
+    public ExposureController(ExposureRepository repo) {
+        this.repo = repo;
+    }
 
     @GetMapping
     public List<Exposure> all() {
