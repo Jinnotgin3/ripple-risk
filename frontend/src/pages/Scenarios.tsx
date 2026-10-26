@@ -1,22 +1,50 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Reveal } from "../components/motion/Reveal";
 import { ArrowButton } from "../components/ui/ArrowButton";
-import { Sliders } from "lucide-react";
+import { Sliders, Play, CheckCircle } from "lucide-react";
+import { runCascadeSimulation, type Entity, type Exposure } from "../lib/simulation";
 
 const SHOCK_TYPES = ["CREDIT_DEFAULT", "LIQUIDITY_CRUNCH", "MARKET_SHOCK", "REGULATORY_ACTION"];
 
 export default function Scenarios() {
+  const navigate = useNavigate();
+  const [isRunning, setIsRunning] = useState(false);
   const [form, setForm] = useState({
-    name: "",
+    name: "Base stress Q1",
     shockType: SHOCK_TYPES[0],
-    magnitude: 0.3,
-    recoveryRate: 0.1,
-    threshold: 0.5,
-    maxRounds: 10,
+    magnitude: 0.35,
+    recoveryRate: 0.15,
+    threshold: 0.45,
+    maxRounds: 8,
   });
 
   function handleChange(key: string, value: string | number) {
     setForm((f) => ({ ...f, [key]: value }));
+  }
+
+  function handleRunSimulation() {
+    setIsRunning(true);
+
+    // Retrieve custom entities/exposures from localStorage if user added any in Networks page
+    let entities: Entity[] | undefined;
+    let exposures: Exposure[] | undefined;
+    try {
+      const storedEnt = localStorage.getItem("rr_entities");
+      if (storedEnt) entities = JSON.parse(storedEnt);
+      const storedExp = localStorage.getItem("rr_exposures");
+      if (storedExp) exposures = JSON.parse(storedExp);
+    } catch {
+      // fallback to defaults
+    }
+
+    const result = runCascadeSimulation(form, entities, exposures);
+    localStorage.setItem("rr_simulation_result", JSON.stringify(result));
+
+    setTimeout(() => {
+      setIsRunning(false);
+      navigate("/results");
+    }, 400);
   }
 
   return (
@@ -89,13 +117,23 @@ export default function Scenarios() {
                 id="max-rounds"
                 type="number" min={1} max={50}
                 value={form.maxRounds}
-                onChange={(e) => handleChange("maxRounds", parseInt(e.target.value))}
+                onChange={(e) => handleChange("maxRounds", parseInt(e.target.value) || 1)}
                 className="w-32 rounded-[var(--radius)] border border-border bg-input px-3 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-sidebar-ring"
               />
             </div>
 
             <div className="pt-2">
-              <ArrowButton type="button">Run Simulation</ArrowButton>
+              <ArrowButton type="button" onClick={handleRunSimulation} disabled={isRunning}>
+                {isRunning ? (
+                  <span className="flex items-center gap-2">
+                    <CheckCircle className="size-4 animate-spin" /> Simulating Contagion...
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-2">
+                    <Play className="size-4 fill-current" /> Run Simulation
+                  </span>
+                )}
+              </ArrowButton>
             </div>
           </div>
         </div>
