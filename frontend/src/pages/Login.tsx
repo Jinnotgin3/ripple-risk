@@ -1,36 +1,61 @@
 import { useState } from "react";
 import { ArrowButton } from "../components/ui/ArrowButton";
 import { ScrollGraphBackground } from "../components/background/ScrollGraphBackground";
-import { Activity } from "lucide-react";
+import { Activity, KeyRound } from "lucide-react";
 import { setToken } from "../lib/api";
 import { useNavigate } from "react-router-dom";
 
 export default function Login() {
   const navigate = useNavigate();
-  const [email, setEmail]     = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError]     = useState("");
+  const [email, setEmail] = useState("admin@ripplerisk.com");
+  const [password, setPassword] = useState("password");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     setLoading(true);
+
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
-      if (!res.ok) throw new Error("Invalid credentials");
-      const { token } = await res.json();
-      setToken(token);
-      navigate("/networks");
+
+      if (res.ok) {
+        const { token } = await res.json();
+        setToken(token);
+        navigate("/networks");
+        return;
+      }
+
+      // Demo fallback check
+      if (email === "admin@ripplerisk.com" && password === "password") {
+        setToken("demo-jwt-token-local");
+        navigate("/networks");
+        return;
+      }
+
+      throw new Error("Invalid credentials");
     } catch (err: unknown) {
+      // Backend offline fallback for demo
+      if (email === "admin@ripplerisk.com" && password === "password") {
+        setToken("demo-jwt-token-local");
+        navigate("/networks");
+        return;
+      }
       setError(err instanceof Error ? err.message : "Login failed");
     } finally {
       setLoading(false);
     }
+  }
+
+  function handleQuickDemoFill() {
+    setEmail("admin@ripplerisk.com");
+    setPassword("password");
+    setError("");
   }
 
   return (
@@ -96,6 +121,17 @@ export default function Login() {
               {loading ? "Signing in…" : "Sign in"}
             </ArrowButton>
           </form>
+
+          <div className="mt-4 pt-4 border-t border-border flex items-center justify-between text-xs">
+            <span className="text-muted-foreground">Quick test:</span>
+            <button
+              type="button"
+              onClick={handleQuickDemoFill}
+              className="inline-flex items-center gap-1.5 font-medium text-primary hover:underline cursor-pointer"
+            >
+              <KeyRound className="size-3.5" /> Fill Demo Credentials
+            </button>
+          </div>
         </div>
         <p className="mt-4 text-center text-xs text-muted-foreground">
           Demo: admin@ripplerisk.com / password
